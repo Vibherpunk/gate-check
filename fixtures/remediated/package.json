@@ -1,0 +1,7 @@
+{
+  "name": "client-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-generated client portal (profiles + documents).",
+  "main": "server.js"
+}

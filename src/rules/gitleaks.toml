@@ -1,0 +1,21 @@
+# VibeHard secrets-gate config. Keep gitleaks' full default ruleset, but never
+# treat derived/build output as authored source (gates scan source, not artifacts
+# — PROJECT_BRIEF.md §11). The path allowlist drops findings under build dirs;
+# the runSecrets `hasAuthoredSource` guard is what fails closed if the allowlist
+# (or an all-derived project) would otherwise leave nothing real to scan.
+#
+# KEEP THIS LIST IN SYNC WITH DERIVED_DIRS (src/gate/scan-scope.ts) — found live
+# 2026-07-07: this list was missing .vibehard (present in DERIVED_DIRS), so gitleaks
+# scanned our own bookkeeping file (.vibehard/owned.json, a map of file→sha256 hash)
+# and flagged a hex hash as a "Generic API Key" false positive, blocking a real
+# customer build on nothing. TOML can't import the TS constant, so scan-scope.test.ts
+# asserts this file's allowlist covers every DERIVED_DIRS entry — drift fails a test
+# instead of a customer's gate.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore derived/build directories (not authored source)"
+paths = [
+  '''(^|/)(node_modules|\.next|dist|build|out|coverage|\.turbo|\.git|\.vibehard)/''',
+]

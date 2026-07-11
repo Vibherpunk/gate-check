@@ -1,0 +1,17 @@
+rules:
+  - id: sqlite-template-literal-query
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      A SQL statement is built from a template literal and handed to a SQLite
+      execution sink (prepare/exec). Interpolated input is a SQL-injection
+      vector. Use a parameterized statement: db.prepare('... WHERE x = ?').
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+    patterns:
+      - pattern-either:
+          - pattern: $DB.prepare(`...`)
+          - pattern: $DB.exec(`...`)
+          - pattern: $DB.prepare("..." + $X)
+          - pattern: $DB.exec("..." + $X)

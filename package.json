@@ -1,0 +1,53 @@
+{
+  "name": "@vibehard/gate-check",
+  "version": "0.1.0",
+  "description": "A deterministic security/quality gate chain for AI-generated code — SAST, secret scanning, dependency vulns, RLS enforcement, migration checks, and a clean-room build+boot verify. Runs against any codebase, engine-blind, with zero LLM in the deploy-verdict path.",
+  "type": "module",
+  "license": "MIT",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "bin": {
+    "gate-check": "./bin/gate-check.ts"
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adamrmatar/gate-check.git"
+  },
+  "homepage": "https://github.com/adamrmatar/gate-check#readme",
+  "bugs": {
+    "url": "https://github.com/adamrmatar/gate-check/issues"
+  },
+  "keywords": [
+    "security",
+    "sast",
+    "secrets-scanning",
+    "dependency-vulnerabilities",
+    "rls",
+    "ai-generated-code",
+    "gate",
+    "ci"
+  ],
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "scripts": {
+    "test": "bun test",
+    "test:integration": "bun test --timeout 120000",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "fast-check": "^4.8.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "ai": "^6.0.208",
+    "@electric-sql/pglite": "^0.5.3"
+  }
+}

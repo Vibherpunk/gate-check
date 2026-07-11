@@ -1,0 +1,9 @@
+{
+  "name": "plain-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Zero-VibeHard-context fixture app used by the standalone gate-check CLI smoke test — no Supabase, no .vibehard/ state, no dependencies.",
+  "scripts": {
+    "build": "mkdir -p dist && cp src.js dist/src.js"
+  }
+}

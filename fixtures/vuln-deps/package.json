@@ -1,0 +1,9 @@
+{
+  "name": "vuln-deps",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fixture: a known-vulnerable dependency (lodash 4.17.4) for the dep-vuln gate.",
+  "dependencies": {
+    "lodash": "4.17.4"
+  }
+}
