@@ -27,7 +27,7 @@ async function scratch(files: Record<string, string>): Promise<string> {
 }
 
 // The exact things that false-flagged in the dogfood run, planted in .next/.
-const PLANTED = `const STRIPE_SECRET_KEY = "sk_live_REPLACED_FAKE_TEST_KEY_0000000000000000000000000";\nconst q = db.prepare(\`SELECT * FROM users WHERE name = '\${name}'\`);\n`;
+const PLANTED = `const STRIPE_SECRET_KEY = "sk_live_FAKEKEY_REPLACED_BEFORE_PUSH_00000000000000000";\nconst q = db.prepare(\`SELECT * FROM users WHERE name = '\${name}'\`);\n`;
 const CLEAN_SERVER = `const { createServer } = require("node:http");\ncreateServer((_, r) => r.end("ok")).listen(process.env.PORT || 3000);\n`;
 
 const run = process.env.VIBEHARD_INTEGRATION ? describe : describe.skip;

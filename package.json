@@ -17,11 +17,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/adamrmatar/gate-check.git"
+    "url": "git+https://github.com/Vibherpunk/gate-check.git"
   },
-  "homepage": "https://github.com/adamrmatar/gate-check#readme",
+  "homepage": "https://github.com/Vibherpunk/gate-check#readme",
   "bugs": {
-    "url": "https://github.com/adamrmatar/gate-check/issues"
+    "url": "https://github.com/Vibherpunk/gate-check/issues"
   },
   "keywords": [
     "security",

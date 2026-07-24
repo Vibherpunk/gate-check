@@ -41,7 +41,7 @@ gate-check ./my-app           # "gate" is the default subcommand
 ```
 
 Requires `semgrep`, `gitleaks`, and `trivy` on `PATH` for the `sast`/`secrets`/`depvuln` gates
-respectively — see [VibeHard's own `Dockerfile`](https://github.com/adamrmatar/drydock) for the
+respectively — see [VibeHard's own `Dockerfile`](https://github.com/Vibherpunk/drydock) for the
 exact pinned versions this package's gates were built against. A gate whose binary is missing
 fails closed (blocks), it doesn't silently skip.
 
