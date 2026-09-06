@@ -54,8 +54,9 @@ export function propTestGateRun(projectPath: string, now: string, runner: PropRu
   let isProduction = false;
   if (existsSync(specPath)) {
     try {
-      const spec = coerceSpec(JSON.parse(readFileSync(specPath, "utf8")));
-      isProduction = decideRigor(spec) === "production";
+      const raw = JSON.parse(readFileSync(specPath, "utf8"));
+      const spec = coerceSpec(raw);
+      isProduction = (raw && raw.rigor === "production") || decideRigor(spec) === "production";
     } catch {
       isProduction = true;
     }
