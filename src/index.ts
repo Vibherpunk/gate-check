@@ -22,18 +22,55 @@ import { completenessGate } from "./completeness.ts";
 import { migrateGate } from "./migrate.ts";
 import { rlsEnforceGate } from "./rls-enforce.ts";
 import { proptestGate } from "./proptest.ts";
+import { schemaStrictGate } from "./schema-strict.ts";
+import { concurrencySafeGate } from "./concurrency-safe.ts";
+import { enginesGate } from "./engines.ts";
+import { telemetryGate } from "./telemetry.ts";
 
 /** The default gate chain. Source scanners run FIRST, on authored source; verify runs
  *  LAST because it builds the app (creating .next/dist/…) — keeping derived output out
  *  of the source scans (§11, §19). compliance and prod-readiness are
  *  classification/rigor-driven: a no-op unless the app's spec was persisted by the
  *  front-half, so they never fire on a project that didn't go through it. */
-export const GATES: Gate[] = [sastGate, secretsGate, depvulnGate, rlsGate, migrateGate, rlsEnforceGate, complianceGate, piiGate, prodReadinessGate, proptestGate, verifyGate, completenessGate];
+export const GATES: Gate[] = [
+  schemaStrictGate,
+  proptestGate,
+  concurrencySafeGate,
+  sastGate,
+  secretsGate,
+  depvulnGate,
+  enginesGate,
+  rlsGate,
+  migrateGate,
+  rlsEnforceGate,
+  complianceGate,
+  piiGate,
+  telemetryGate,
+  prodReadinessGate,
+  verifyGate,
+  completenessGate,
+];
 
 /** The FAST chain for the inner fix loop: same gates, but verify is the cheap in-place-build
  *  proxy (seconds, not the minutes of clean-room + container + boot probes). Iterate on this;
  *  the full GATES run ONCE at convergence to confirm the real artifact + no regression. */
-export const FAST_GATES: Gate[] = [sastGate, secretsGate, depvulnGate, rlsGate, migrateGate, rlsEnforceGate, complianceGate, piiGate, prodReadinessGate, proptestGate, fastVerifyGate];
+export const FAST_GATES: Gate[] = [
+  schemaStrictGate,
+  proptestGate,
+  concurrencySafeGate,
+  sastGate,
+  secretsGate,
+  depvulnGate,
+  enginesGate,
+  rlsGate,
+  migrateGate,
+  rlsEnforceGate,
+  complianceGate,
+  piiGate,
+  telemetryGate,
+  prodReadinessGate,
+  fastVerifyGate,
+];
 
 /** Relative path of the "all gates passed" sentinel within a project. */
 export const SENTINEL_REL = ".gate/HARD_VERIFY_PASS";
@@ -145,7 +182,11 @@ export { installStale, safeToolEnv, isUp, runVerify, runVerifyFast, createVerify
 export { sastGate } from "./sast.ts";
 export { secretsGate } from "./secrets.ts";
 export { depvulnGate } from "./depvuln.ts";
-export { migrateGate, runMigrate, SUPABASE_STUBS, neutralize, extensionsIn, type MigrateOptions } from "./migrate.ts";
+export { schemaStrictGate, checkSchemaStrict } from "./schema-strict.ts";
+export { concurrencySafeGate, checkConcurrencySafe } from "./concurrency-safe.ts";
+export { enginesGate, runEngines, collectNodeDecls, normalizeNode, parseNodeDrift } from "./engines.ts";
+export { telemetryGate, checkTelemetry } from "./telemetry.ts";
+export { migrateGate, runMigrate, SUPABASE_STUBS, neutralize, extensionsIn, checkExpandAndContract, type MigrateOptions } from "./migrate.ts";
 export { complianceGate } from "./compliance.ts";
 export { piiGate } from "./pii.ts";
 export { prodReadinessGate } from "./prod-readiness.ts";

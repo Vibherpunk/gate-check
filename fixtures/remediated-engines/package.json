@@ -1,0 +1,9 @@
+{
+  "name": "remediated-engines",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Fixture: all Node.js version declarations agree (green).",
+  "engines": {
+    "node": "20.11.5"
+  }
+}

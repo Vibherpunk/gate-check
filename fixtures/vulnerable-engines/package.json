@@ -1,0 +1,9 @@
+{
+  "name": "vulnerable-engines",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Fixture: package.json and Dockerfile disagree on the Node version (red).",
+  "engines": {
+    "node": "20.11.5"
+  }
+}

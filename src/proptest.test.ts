@@ -28,7 +28,7 @@ test("F1: clamp output is always within [lo, hi]", () => {
     const hi = lo + 5;
     const y = clamp(x, lo, hi);
     return y >= lo && y <= hi;
-  }), { seed: 42 });
+  }), { seed: 42, numRuns: 1000 });
 });
 `;
 
@@ -90,6 +90,40 @@ describe("proptest gate — verdict mapping (stub runner)", () => {
     const v = await propTestGateRun(dir, NOW, runner);
     expect(v.status).toBe("block");
     expect(v.findings[0]!.ruleId).toBe("property-violated");
+  });
+
+  test("Law 2: production rigor BLOCKS when 0 property test files found (fail-closed)", async () => {
+    const dir = workspace();
+    mkdirSync(join(dir, ".vibehard"), { recursive: true });
+    writeFileSync(
+      join(dir, ".vibehard", "spec.json"),
+      JSON.stringify({
+        name: "test-app",
+        realUsers: true,
+      }),
+    );
+    const v = await propTestGateRun(dir, NOW);
+    expect(v.status).toBe("block");
+    expect(v.findings[0]!.ruleId).toBe("missing-mandatory-property-tests");
+    expect(v.findings[0]!.severity).toBe("high");
+  });
+
+  test("Law 2: property test without numRuns: 1000 yields insufficient-fuzz-iterations", async () => {
+    const dir = workspace();
+    writeApp(
+      dir,
+      "export const clamp=(x:number,lo:number,hi:number)=>Math.min(hi,Math.max(lo,x));",
+      `// @requirement F1
+import { test } from "bun:test";
+import fc from "fast-check";
+test("F1", () => {
+  fc.assert(fc.property(fc.integer(), (x) => x === x), { seed: 42, numRuns: 100 });
+});
+`,
+    );
+    const v = await propTestGateRun(dir, NOW);
+    expect(v.status).toBe("block");
+    expect(v.findings.some((f) => f.ruleId === "insufficient-fuzz-iterations")).toBe(true);
   });
 });
 

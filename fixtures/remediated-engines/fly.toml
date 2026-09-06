@@ -1,0 +1,8 @@
+app = "remediated-engines"
+primary_region = "iad"
+
+[build]
+node_version = "20.11.5"
+
+[env]
+PORT = "8080"

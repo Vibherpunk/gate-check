@@ -114,6 +114,44 @@ export function extensionsIn(files: Array<{ file: string; sql: string }>): strin
   return [...names].sort();
 }
 
+export function checkExpandAndContract(files: Array<{ file: string; sql: string }>): Finding[] {
+  const findings: Finding[] = [];
+
+  for (const { file, sql } of files) {
+    if (/alter\s+table\s+.*?\s+drop\s+column\b/i.test(sql)) {
+      findings.push({
+        tool: "migrate",
+        ruleId: "dangerous-drop-column",
+        severity: "critical",
+        file,
+        message: "Direct 'DROP COLUMN' violates zero-downtime expand-and-contract policy. Deprecate column in code first.",
+      });
+    }
+
+    if (/alter\s+table\s+.*?\s+rename\s+column\b/i.test(sql)) {
+      findings.push({
+        tool: "migrate",
+        ruleId: "dangerous-rename-column",
+        severity: "critical",
+        file,
+        message: "Direct 'RENAME COLUMN' breaks running application code. Use dual-write expansion instead.",
+      });
+    }
+
+    if (/alter\s+table\s+.*?\s+add\s+column\s+.*?\s+not\s+null(?!\s+default)/i.test(sql)) {
+      findings.push({
+        tool: "migrate",
+        ruleId: "not-null-without-default",
+        severity: "high",
+        file,
+        message: "Adding a 'NOT NULL' column without a DEFAULT locks the table and fails active in-flight INSERT queries.",
+      });
+    }
+  }
+
+  return findings;
+}
+
 export async function runMigrate(projectPath: string, opts: MigrateOptions = {}): Promise<GateVerdict> {
   const ranAt = opts.ranAt ?? new Date().toISOString();
   const dir = join(projectPath, "supabase", "migrations");
@@ -134,6 +172,11 @@ export async function runMigrate(projectPath: string, opts: MigrateOptions = {})
     file: "supabase/migrations",
     message: `the migration uses \`create extension ${ext}\`, which is SHIMMED for the in-memory check (so a pglite pass doesn't guarantee real-Postgres behavior). Confirm \`${ext}\` is enabled on your Supabase project (Dashboard → Database → Extensions) before relying on it.`,
   }));
+
+  const ddlViolations = checkExpandAndContract(files);
+  if (ddlViolations.length > 0) {
+    return verdictOf("migrate", [...ddlViolations, ...extAdvisory], ranAt);
+  }
 
   const applier = opts.apply ?? pgliteApplier;
   const failure = await applier(files);

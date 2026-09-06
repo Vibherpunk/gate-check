@@ -17,6 +17,7 @@ import { join } from "node:path";
 import { notApplicable, verdictOf, type Finding, type Gate } from "./types.ts";
 import { PROPTEST_DIR, propTestVacuityReason, requirementIdOf } from "./proptest-validate.ts";
 import { safeToolEnv } from "./verify.ts";
+import { decideRigor, coerceSpec } from "./spec-contract.ts";
 
 /** Bounded like CLEAN_TIMEOUT_MS in verify.ts — a hung property (infinite loop in app code
  *  under a generated input) must block with a finding, not hang the pipeline. */
@@ -48,9 +49,37 @@ export function listPropTestFiles(projectPath: string): string[] {
 
 export function propTestGateRun(projectPath: string, now: string, runner: PropRunner = defaultRunner): ReturnType<Gate["run"]> {
   const files = listPropTestFiles(projectPath);
-  // No property tests → nothing to check. n/a on purpose (never a vacuous "pass", audit H4);
-  // deletion of the whole directory is caught by anti-tamper, not here.
-  if (!files.length) return Promise.resolve(notApplicable("proptest", now));
+
+  const specPath = join(projectPath, ".vibehard", "spec.json");
+  let isProduction = false;
+  if (existsSync(specPath)) {
+    try {
+      const spec = coerceSpec(JSON.parse(readFileSync(specPath, "utf8")));
+      isProduction = decideRigor(spec) === "production";
+    } catch {
+      isProduction = true;
+    }
+  }
+
+  // FAIL CLOSED: If production, missing property tests MUST block
+  if (!files.length) {
+    if (isProduction) {
+      return Promise.resolve(
+        verdictOf(
+          "proptest",
+          [
+            f(
+              "missing-mandatory-property-tests",
+              PROPTEST_DIR,
+              "Production rigor requires fast-check property tests in tests/properties/. Zero test files found. Core state invariants must be fuzzed.",
+            ),
+          ],
+          now,
+        ),
+      );
+    }
+    return Promise.resolve(notApplicable("proptest", now));
+  }
 
   const findings: Finding[] = [];
   for (const name of files) {
@@ -69,6 +98,17 @@ export function propTestGateRun(projectPath: string, now: string, runner: PropRu
           "vacuous-property-test",
           rel,
           `This property test no longer tests anything: ${reason}. Property tests are generated from the PRD's acceptance criteria and are read-only for fixes — restore the test and fix the APP behavior instead.`,
+        ),
+      );
+    }
+
+    // ENFORCE minimum 1,000 runs
+    if (!/numRuns:\s*([1-9][0-9]{3,})/.test(content)) {
+      findings.push(
+        f(
+          "insufficient-fuzz-iterations",
+          rel,
+          "Property tests must explicitly configure { numRuns: 1000 } or higher.",
         ),
       );
     }

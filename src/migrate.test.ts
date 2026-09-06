@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runMigrate, extensionsIn } from "./migrate.ts";
+import { runMigrate, extensionsIn, checkExpandAndContract } from "./migrate.ts";
 
 const tmps: string[] = [];
 afterEach(() => {
@@ -103,5 +103,50 @@ CREATE POLICY "own" ON "Staff" FOR ALL USING ("authUserId" = auth.uid());`,
     const ext = v.findings.find((f) => f.ruleId === "extension-shimmed");
     expect(ext?.severity).toBe("medium");
     expect(ext?.message).toMatch(/pg_trgm/);
+  });
+
+  test("Law 4: BLOCKS direct DROP COLUMN (expand-and-contract violation)", async () => {
+    const v = await runMigrate(
+      ws({
+        "001_drop.sql": `ALTER TABLE "users" DROP COLUMN "old_name";`,
+      }),
+      { apply: async () => null },
+    );
+    expect(v.status).toBe("block");
+    expect(v.findings.some((f) => f.ruleId === "dangerous-drop-column")).toBe(true);
+    expect(v.findings.find((f) => f.ruleId === "dangerous-drop-column")?.severity).toBe("critical");
+  });
+
+  test("Law 4: BLOCKS direct RENAME COLUMN (expand-and-contract violation)", async () => {
+    const v = await runMigrate(
+      ws({
+        "001_rename.sql": `ALTER TABLE "users" RENAME COLUMN "name" TO "full_name";`,
+      }),
+      { apply: async () => null },
+    );
+    expect(v.status).toBe("block");
+    expect(v.findings.some((f) => f.ruleId === "dangerous-rename-column")).toBe(true);
+    expect(v.findings.find((f) => f.ruleId === "dangerous-rename-column")?.severity).toBe("critical");
+  });
+
+  test("Law 4: BLOCKS ADD COLUMN NOT NULL without DEFAULT", async () => {
+    const v = await runMigrate(
+      ws({
+        "001_add.sql": `ALTER TABLE "users" ADD COLUMN "role" text NOT NULL;`,
+      }),
+      { apply: async () => null },
+    );
+    expect(v.status).toBe("block");
+    expect(v.findings.some((f) => f.ruleId === "not-null-without-default")).toBe(true);
+  });
+
+  test("Law 4: PASSES ADD COLUMN NOT NULL WITH DEFAULT", async () => {
+    const v = await runMigrate(
+      ws({
+        "001_add.sql": `ALTER TABLE "users" ADD COLUMN "role" text NOT NULL DEFAULT 'user';`,
+      }),
+      { apply: async () => null },
+    );
+    expect(v.status).toBe("pass");
   });
 });
