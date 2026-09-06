@@ -24,8 +24,9 @@
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
 
-const DEFAULT_LOCK_DIR = "/root/.vibehard/.host-lock";
+const DEFAULT_LOCK_DIR = process.env.HOME ? join(process.env.HOME, ".vibehard", ".host-lock") : join(tmpdir(), ".vibehard", ".host-lock");
 const DEFAULT_STALE_MS = 10 * 60_000; // a lock older than this is presumed abandoned (crashed holder)
 const DEFAULT_POLL_MS = 500;
 const DEFAULT_MAX_WAIT_MS = 5 * 60_000; // never block a build forever waiting for the lock

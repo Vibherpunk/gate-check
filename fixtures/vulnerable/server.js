@@ -5,6 +5,7 @@ const { DatabaseSync } = require("node:sqlite");
 
 // ❌ VULN 1 — hardcoded secrets committed to source (gitleaks + semgrep catch).
 const STRIPE_SECRET_KEY = "sk_live_FAKEKEY_REPLACED_BEFORE_PUSH_00000000000000000";
+const API_KEY = "abcdef0123456789abcdef0123456789abcdef01";
 const DB_ADMIN_PASSWORD = "sup3r-s3cret-admin-pw";
 
 const db = new DatabaseSync(":memory:");
